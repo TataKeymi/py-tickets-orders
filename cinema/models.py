@@ -1,6 +1,7 @@
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.conf import settings
+from django.db.models import ExpressionWrapper
 
 
 class CinemaHall(models.Model):
@@ -103,6 +104,7 @@ class Ticket(models.Model):
                         f"(1, {count_attrs})"
                     }
                 )
+            return ticket_attr_value
 
     def clean(self):
         Ticket.validate_seat(self.row, self.seat,

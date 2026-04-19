@@ -1,4 +1,4 @@
-from django.db.models import F, Count, ExpressionWrapper
+from django.db.models import F, Count, ExpressionWrapper, IntegerField
 
 from rest_framework import viewsets
 from rest_framework.pagination import PageNumberPagination
@@ -108,8 +108,7 @@ class MovieSessionViewSet(viewsets.ModelViewSet):
                                 .annotate(tickets_available=ExpressionWrapper(
                                     F("cinema_hall__rows")
                                     * F("cinema_hall__seats_in_row")
-                                    - Count("tickets"))))
-
+                                    - Count("tickets"), output_field = IntegerField())))
         return queryset.order_by("id")
 
 
@@ -127,7 +126,9 @@ class OrderViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         queryset = self.queryset.filter(user=self.request.user)
         if self.action == "list":
-            queryset = queryset.prefetch_related("tickets")
+            queryset = (queryset
+                        .prefetch_related("tickets__movie_session__cinema_hall")
+                        .prefetch_related("tickets__movie_session__movie"))
         return queryset
 
     def perform_create(self, serializer):

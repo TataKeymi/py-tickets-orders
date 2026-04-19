@@ -110,6 +110,7 @@ class TicketSerializer(serializers.ModelSerializer):
             attrs["movie_session"],
             serializers.ValidationError
         )
+        return attrs
 
 
 class TicketListSerializer(TicketSerializer):
