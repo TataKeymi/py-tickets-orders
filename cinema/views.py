@@ -67,9 +67,7 @@ class MovieViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(title__icontains=title)
 
         if self.action in ("list", "retrieve"):
-            queryset = (queryset.prefetch_related("genres")
-                        .prefetch_related("actors"))
-
+            queryset = queryset.prefetch_related("genres", "actors")
         return queryset.distinct()
 
 
@@ -103,12 +101,12 @@ class MovieSessionViewSet(viewsets.ModelViewSet):
                         .prefetch_related("cinema_hall"))
 
         if self.action == "list":
-            queryset = (queryset.prefetch_related("movie")
-                                .prefetch_related("cinema_hall")
-                                .annotate(tickets_available=ExpressionWrapper(
-                                    F("cinema_hall__rows")
-                                    * F("cinema_hall__seats_in_row")
-                                    - Count("tickets"), output_field = IntegerField())))
+            queryset = (queryset.prefetch_related("movie", "cinema_hall")
+                        .annotate(tickets_available=ExpressionWrapper(
+                            F("cinema_hall__rows")
+                            * F("cinema_hall__seats_in_row")
+                            - Count("tickets"),
+                            output_field=IntegerField())))
         return queryset.order_by("id")
 
 
@@ -126,9 +124,9 @@ class OrderViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         queryset = self.queryset.filter(user=self.request.user)
         if self.action == "list":
-            queryset = (queryset
-                        .prefetch_related("tickets__movie_session__cinema_hall")
-                        .prefetch_related("tickets__movie_session__movie"))
+            queryset = queryset.prefetch_related(
+                "tickets__movie_session__cinema_hall",
+                "tickets__movie_session__movie")
         return queryset
 
     def perform_create(self, serializer):
